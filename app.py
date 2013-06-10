@@ -13,7 +13,7 @@ def generate_text(length = 1):
 def deeper(randstr):
     page_text = "<p>{0}</p><ul>{1}</ul>"
     p = generate_text(50)
-    a = generate_links(randstr)
+    a = generate_links('/shoes/'+randstr)
     html = page_text.format(p,a)
     return html
 

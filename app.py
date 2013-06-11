@@ -18,7 +18,7 @@ def deeper(randstr):
     return html
 
 def generate_links(root=None):
-    base = '<ul><a href="{0}{1}" >turtles!</a></ul>'
+    base = '<html><head></head><body><ul><a href="{0}{1}" >turtles!</a></ul></body></html>'
     a_str = str()
     for i in range(20):
         extra = generate_text(4)

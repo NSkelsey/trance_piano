@@ -1,40 +1,47 @@
-import string
-import random
-
-from flask import Flask
+from flask import Flask, abort
+import json
 
 app = Flask(__name__)
 
-def generate_text(length = 1):
-    random_char = "".join(random.sample(string.ascii_letters, length))
-    return random_char
+with open('site.json', 'r') as f:
+    raw = f.read()
+    url_dict = json.loads(raw)
 
-@app.route('/shoes/<randstr>')
-def deeper(randstr):
-    page_text = "<p>{0}</p><ul>{1}</ul>"
-    p = generate_text(50)
-    a = generate_links('/shoes/'+randstr)
-    html = page_text.format(p,a)
-    return html
+def normalize_url(path):
+    if path == '':
+        path = '/'
+    if not path.startswith('/'):
+        path = '/' + path
+    if not path.endswith('/'):
+        path = path + '/'
+    return path
 
-def generate_links(root=None):
-    base = '<html><head></head><body><ul><a href="{0}{1}" >turtles!</a></ul></body></html>'
-    a_str = str()
-    for i in range(20):
-        extra = generate_text(4)
-        if len(root + extra) > 25:
-                extra = extra[-20:]
-                root = '/shoes/'
-        a = base.format(root, extra)
-        a_str += a
-    return a_str
+_copy_d = dict()
+for key, value in url_dict.iteritems():
+    key = normalize_url(key)
+    _copy_d[key] = [normalize_url(v) for v in value]
+url_dict = _copy_d
 
-@app.route('/')
-def home():
-    html = "This is home <ul>{0}</ul>".format(generate_links('/shoes/'))
-    return html
+print "These paths will all generate a valid response:\n", url_dict.keys()
+
+@app.route('/', defaults={'path':''})
+@app.route('/<path:path>')
+def all_paths(path):
+    if path is '' or not path.startswith('/'):
+        path = '/' + path
+    if (path in url_dict or
+       (not path.endswith('/') and path + '/' in url_dict)):
+        hrefs = url_dict[path]
+        page = "<html><head></head><body><ul>\n"
+        for href in hrefs:
+            link = "<li><a href={0}>{0}</a></li>\n".format(href)
+            page += link
+        page += "</ul></body></html>"
+        return page
+    else:
+        abort(404)
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', port=80)
+    app.run('0.0.0.0', port=5000, debug=True)
 
 
